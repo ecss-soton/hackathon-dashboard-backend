@@ -2,7 +2,7 @@ var config = require('./config.js').config;
 
 var app = require('express')();
 var http = require('http').Server(app);
-var io = require('socket.io')(http);
+var io = require('socket.io')(http, { origins: '*:*'});
 
 io.on('connection', function(socket) {
   console.log(`${socket.id} connected`);
@@ -32,8 +32,8 @@ io.on('connection', function(socket) {
 })
 
 let port = process.env.PORT;
-if (port == null || port == "") {
-  port = 8000;
+if (port == null || port === "") {
+  port = 3001;
 }
 http.listen(port, function() {
   console.log('listening on *:3001');
