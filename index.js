@@ -28,10 +28,14 @@ io.on('connection', function(socket) {
     });
     console.log(`hacking time sent to ${socket.id}`);
   });
-  
+
 })
 
-http.listen(3001, function() {
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 8000;
+}
+http.listen(port, function() {
   console.log('listening on *:3001');
 });
 
