@@ -1,0 +1,55 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Announcements</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container">
+      <h1>Announcements</h1>
+      <form method="POST" onsubmit="return confirm('Do you really want to post this announcement?');">
+        <input type="hidden" name="_csrf" value="<%=  csrfToken %>">
+        <div class="form-group">
+          <label for="titleInput">
+            Title:
+          </label>
+          <input id="titleInput" class="form-control" name="title">
+        </div>
+        <div class="form-group">
+          <label for="contentInput">
+            Content:
+          </label>
+          <textarea id="contentInput" class="form-control" name="content"></textarea>
+        </div>
+        <input name="submit" type="submit">
+      </form>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Content</th>
+            <th>Publish Time</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% announcements.forEach(function(announcement) { %>
+          <tr>
+            <td><%= announcement.Title %></td>
+            <td><%= announcement.Content %></td>
+            <td><%= announcement.PublishTime %></td>
+            <td>
+              <form method="POST" onsubmit="return confirm('Do you really want to delete this announcement?');">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="id" value="<%= announcement.Id %>">
+                <input type="submit" name="delete" value="Delete">
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

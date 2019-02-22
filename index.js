@@ -1,6 +1,9 @@
 const config = require('./config.js').config
 
 const app = require('express')()
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
+
 const http = require('http').Server(app)
 const io = require('socket.io')(http)
 
@@ -9,11 +12,11 @@ app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 
 const sqlite3 = require('sqlite3').verbose()
-const db = new sqlite3.Database('./campushack.sqlite3')
+const db = new sqlite3.Database(__dirname + '/campushack.sqlite3')
 
 app.get('/api/announcements', function(req, res) {
-  db.all('select * from Announcements', function(err, rows) {
-    console.log(rows)
+  res.header('Access-Control-Allow-Origin', '*');
+  getAnnouncements(function(rows) {
     res.send(rows)
   })
 })
@@ -25,8 +28,51 @@ app.use(basicAuth({
   realm: 'admin'
 }));
 
-app.get('/secure', function(req, res) {
-  res.send('hi')
+const cookieParser = require('cookie-parser')
+app.use(cookieParser())
+
+const csrf = require('csurf')
+const csrfProtection = csrf({
+  cookie: true,
+})
+
+app.get('/admin', function(req, res) {
+  res.sendFile(__dirname + '/views/admin.html')
+})
+
+app.get('/admin/announcements', csrfProtection, function(req, res) {
+  getAnnouncements(function(announcements) {
+    res.render('admin-announcements', {
+      csrfToken: req.csrfToken(),
+      announcements: announcements,
+    })
+  })
+})
+
+app.post('/admin/announcements', csrfProtection, function(req, res) {
+  if ('submit' in req.body) {
+    db.run('insert into Announcements (Title, Content) values (?, ?)', req.body.title, req.body.content, function(err) {
+      if (!err) {
+        db.get('select * from Announcements where id = ?', this.lastID, function(err, row) {
+          if (!err) {
+            row['action'] = 'add'
+            io.emit('announcements', row)
+          }
+        })
+      }
+    })
+    res.redirect('/admin/announcements')
+  } else if ('delete' in req.body) {
+    db.run('delete from Announcements where id = ?', req.body.id, function(err) {
+      if (!err) {
+        io.emit('announcements', {
+          action: 'delete',
+          id: req.body.id,
+        })
+      }
+    })
+    res.redirect('/admin/announcements')
+  }
 })
 
 io.on('connection', function(socket) {
@@ -64,10 +110,7 @@ app.post('/admin/event', function(req, res) {
   res.send('ok');
 });
 
-let port = process.env.PORT;
-if (port == null || port === "") {
-  port = 3001;
-}
+let port = process.env.PORT || 3001
 http.listen(port, function() {
   console.log('listening on *:3001');
 });
@@ -78,3 +121,9 @@ function change_page() {
 }
 
 setInterval(() => change_page(), 20000);
+
+function getAnnouncements(callback) {
+  db.all('select * from Announcements order by Id desc', function(err, rows) {
+    callback(rows)
+  })
+}
