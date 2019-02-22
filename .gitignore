@@ -1,2 +1,8 @@
 # dependencies
 node_modules/
+
+# databases
+campushack.sqlite3
+
+# config
+config.js

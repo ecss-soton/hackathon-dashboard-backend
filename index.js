@@ -1,12 +1,33 @@
-var config = require('./config.js').config;
+const config = require('./config.js').config
 
-var app = require('express')();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+const app = require('express')()
+const http = require('http').Server(app)
+const io = require('socket.io')(http)
 
 const bodyParser = require('body-parser')
-app.use(bodyParser.urlencoded({extended: false}));
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}))
+app.use(bodyParser.json())
+
+const sqlite3 = require('sqlite3').verbose()
+const db = new sqlite3.Database('./campushack.sqlite3')
+
+app.get('/api/announcements', function(req, res) {
+  db.all('select * from Announcements', function(err, rows) {
+    console.log(rows)
+    res.send(rows)
+  })
+})
+
+const basicAuth = require('express-basic-auth');
+app.use(basicAuth({
+  users: config.admins,
+  challenge: true,
+  realm: 'admin'
+}));
+
+app.get('/secure', function(req, res) {
+  res.send('hi')
+})
 
 io.on('connection', function(socket) {
   console.log(`${socket.id} connected`);
