@@ -43,6 +43,8 @@ const csrfProtection = csrf({
   cookie: true,
 })
 
+const request = require('request');
+
 app.get('/admin', function(req, res) {
   res.sendFile(__dirname + '/views/admin.html')
 })
@@ -64,6 +66,18 @@ app.post('/admin/announcements', csrfProtection, function(req, res) {
           if (!err) {
             row['action'] = 'add'
             io.emit('announcements', row)
+            if (config.integrations.slack.enabled && config.integrations.slack.announcements_webhook) {
+              let text = `*${req.body.title}*`
+              if (req.body.content) {
+                text += `\n${req.body.content}`
+              }
+              request.post({
+                url: config.integrations.slack.announcements_webhook,
+                json: {
+                  text: text,
+                },
+              })
+            }
           }
         })
       }
