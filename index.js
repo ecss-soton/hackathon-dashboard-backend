@@ -21,6 +21,13 @@ app.get('/api/announcements', function(req, res) {
   })
 })
 
+app.get('/api/repos', function(req, res) {
+  res.header('Access-Control-Allow-Origin', '*');
+  getRepos(function(rows) {
+    res.send(rows)
+  })
+})
+
 const basicAuth = require('express-basic-auth');
 app.use(basicAuth({
   users: config.admins,
@@ -75,6 +82,40 @@ app.post('/admin/announcements', csrfProtection, function(req, res) {
   }
 })
 
+app.get('/admin/repos', csrfProtection, function(req, res) {
+  getRepos(function(repos) {
+    res.render('admin-repos', {
+      csrfToken: req.csrfToken(),
+      repos: repos,
+    })
+  })
+})
+
+app.post('/admin/repos', csrfProtection, function(req, res) {
+  if ('submit' in req.body) {
+    db.run('insert into Repos (RepoUrl, TeamName) values (?, ?)', req.body.url, req.body.team, function(err) {
+      if (!err) {
+        io.emit('repos', {
+          Action: 'add',
+          RepoUrl: req.body.url,
+          TeamName: req.body.team,
+        })
+      }
+    })
+    res.redirect('/admin/repos')
+  } else if ('delete' in req.body) {
+    db.run('delete from Repos where RepoUrl = ?', req.body.url, function(err) {
+      if (!err) {
+        io.emit('repos', {
+          action: 'delete',
+          url: req.body.url,
+        })
+      }
+    })
+    res.redirect('/admin/repos')
+  }
+})
+
 io.on('connection', function(socket) {
   console.log(`${socket.id} connected`);
   socket.on('disconnect', function() {
@@ -124,6 +165,12 @@ setInterval(() => change_page(), 20000);
 
 function getAnnouncements(callback) {
   db.all('select * from Announcements order by Id desc', function(err, rows) {
+    callback(rows)
+  })
+}
+
+function getRepos(callback) {
+  db.all('select * from Repos', function(err, rows) {
     callback(rows)
   })
 }

@@ -7,42 +7,40 @@
   </head>
   <body>
     <div class="container">
-      <h1>Announcements</h1>
-      <form method="POST" onsubmit="return confirm('Do you really want to post this announcement?');">
+      <h1>Repositories</h1>
+      <form method="POST">
         <input type="hidden" name="_csrf" value="<%=  csrfToken %>">
         <div class="form-group">
-          <label for="titleInput">
-            Title:
+          <label for="urlInput">
+            Repository URL:
           </label>
-          <input id="titleInput" class="form-control" name="title" required>
+          <input id="urlInput" class="form-control" name="url" required>
         </div>
         <div class="form-group">
-          <label for="contentInput">
-            Content:
+          <label for="teamnameInput">
+            Team Name:
           </label>
-          <textarea id="contentInput" class="form-control" name="content"></textarea>
-        </div>
+          <input id="teamnameInput" class="form-control" name="team">
+          </div>
         <input name="submit" type="submit">
       </form>
       <table class="table">
         <thead>
           <tr>
-            <th>Title</th>
-            <th>Content</th>
-            <th>Publish Time</th>
+            <th>Team</th>
+            <th>Repository URL</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          <% announcements.forEach(function(announcement) { %>
+          <% repos.forEach(function(repo) { %>
           <tr>
-            <td><%= announcement.Title %></td>
-            <td><%= announcement.Content %></td>
-            <td><%= announcement.PublishTime %></td>
+            <td><%= repo.TeamName %></td>
+            <td><%= repo.RepoUrl %></td>
             <td>
-              <form method="POST" onsubmit="return confirm('Do you really want to delete this announcement?');">
+              <form method="POST" onsubmit="return confirm('Do you really want to delete this repository?');">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                <input type="hidden" name="id" value="<%= announcement.Id %>">
+                <input type="hidden" name="url" value="<%= repo.RepoUrl %>">
                 <input type="submit" name="delete" value="Delete">
               </form>
             </td>

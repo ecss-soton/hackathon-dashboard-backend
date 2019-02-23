@@ -4,3 +4,9 @@ create table Announcements (
     Content text,
     PublishTime timestamp default current_timestamp not null
 );
+
+create table Repos (
+    RepoUrl url not null primary key,
+    TeamName varchar(255),
+    RecordTime timestamp default current_timestamp not null
+);
